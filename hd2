@@ -3,21 +3,27 @@ local PartCreator = {}
 local Function = {}
 
 local function h()
+	local SpringModule = {}
+
+	-- Internal class table
 	local Spring = {}
 
---[=[
-	Constructs a new Spring at the position and target specified.
-	Works with numbers, Vector2, Vector3, etc.
-]=]
+	-- Helper to handle math for Vector3, number, etc.
+	local function lerp(a, b, alpha)
+		return (a * (1 - alpha) + (b * alpha))
+	end
+
+	-- Constructor
 	function Spring.new(initial, clock)
 		local springClock = clock or os.clock
-		local p0 = initial or 0
+		local p0 = initial
 
+		-- Create the instance with base internal state
 		local self = setmetatable({
 			_clock = springClock,
 			_time0 = springClock(),
 			_position0 = p0,
-			_velocity0 = p0 * 0, -- Ensures velocity starts as the same type (Vector3, etc)
+			_velocity0 = initial * 0, -- Auto-scales for Vector3 or number
 			_target = p0,
 			_damper = 1,
 			_speed = 1,
@@ -29,7 +35,6 @@ local function h()
 	function Spring:Impulse(velocity)
 		local now = self._clock()
 		local pos, vel = self:_positionVelocity(now)
-
 		self._position0 = pos
 		self._velocity0 = vel + velocity
 		self._time0 = now
@@ -38,7 +43,6 @@ local function h()
 	function Spring:TimeSkip(delta)
 		local now = self._clock()
 		local position, velocity = self:_positionVelocity(now + delta)
-
 		self._position0 = position
 		self._velocity0 = velocity
 		self._time0 = now
@@ -73,14 +77,15 @@ local function h()
 		local d2 = d * d
 		local h, si, co
 
-		if d2 < 1 then -- Underdamped (Bouncy)
+		if d2 < 1 then
 			h = math.sqrt(1 - d2)
 			local ep = math.exp(-d * t) / h
 			co, si = ep * math.cos(h * t), ep * math.sin(h * t)
-		elseif d2 == 1 then -- Critically Damped
+		elseif d2 == 1 then
+			h = 1
 			local ep = math.exp(-d * t)
 			co, si = ep, ep * t
-		else -- Overdamped
+		else
 			h = math.sqrt(d2 - 1)
 			local u = math.exp((-d + h) * t) / (2 * h)
 			local v = math.exp((-d - h) * t) / (2 * h)
@@ -95,13 +100,18 @@ local function h()
 		local b1 = s * si
 		local b2 = h * co - d * si
 
-		return a0 * p0 + a1 * p1 + a2 * v0,
-		b0 * p0 + b1 * p1 + b2 * v0
+		local position = p0 * a0 + p1 * a1 + v0 * a2
+		local velocity = p0 * b0 + p1 * b1 + v0 * b2
+
+		return position, velocity
 	end
 
+	-- Handling properties via Metatable
 	Spring.__index = function(self, index)
-		-- Check if the index is a method (Impulse, SetTarget, etc)
-		if Spring[index] then return Spring[index] end
+		-- Check if it's a method first
+		if rawget(Spring, index) then 
+			return Spring[index] 
+		end
 
 		local now = self._clock()
 		if index == "Position" or index == "Value" or index == "p" then
@@ -119,12 +129,14 @@ local function h()
 		elseif index == "Clock" then
 			return self._clock
 		end
+		return nil
 	end
 
 	Spring.__newindex = function(self, index, value)
 		local now = self._clock()
-		-- Sync physical state before changing parameters
 		local pos, vel = self:_positionVelocity(now)
+
+		-- Always sync state before a property change
 		self._position0 = pos
 		self._velocity0 = vel
 		self._time0 = now
@@ -138,7 +150,7 @@ local function h()
 		elseif index == "Damper" or index == "d" then
 			self._damper = value
 		elseif index == "Speed" or index == "s" then
-			self._speed = value < 0 and 0 or value
+			self._speed = math.max(0, value)
 		elseif index == "Clock" then
 			self._clock = value
 			self._time0 = value()
