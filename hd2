@@ -3648,7 +3648,7 @@ function run(Player)
 
 		PlayerData[Data].CurrentPartList = Function.PlayerDataDefault().CurrentPartList
 
-		for i,v:BasePart in pairs(Character:GetChildren()) do
+		for i,v in pairs(Character:GetChildren()) do
 			local Limbs = {"Torso","Head","Right Arm","Right Leg","Left Arm","Left Leg"}
 			if v:IsA("BasePart") and table.find(Limbs,v.Name) ~= nil then
 				v.Transparency = 0
