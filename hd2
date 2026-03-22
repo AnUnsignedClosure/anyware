@@ -3597,32 +3597,34 @@ function run(Player)
 				local _ = (v:IsA("BasePart") and v.Name ~= "Head") and (function() v.Transparency = 1 end)()
 			end
 
-			for Name,BodyPart in pairs(R6Map) do
-				if Character:FindFirstChild(Name) then continue end
-				local Part = Instance.new("Part", Character)
-				Part.Size = BodyPart["Size"]
-				Part.Name = Name
-				Part.Transparency = 0
-				Part.CanCollide = false
-				Part.CanQuery = false
-				Part.CanTouch = false
-				Part.Massless = true
-				Part.Color = Character.Head.Color
-				local Mesh = Instance.new("SpecialMesh",Part)
-				Mesh.MeshId = "rbxassetid://12221758"
+			for Name, BodyPart in R6Map do
+				if not Character:FindFirstChild(Name) then
 
-				if Name ~= "Torso" then
-					Mesh.Scale = Vector3.new(0.5,1,1)
+					local Part = Instance.new("Part")
+					Part.Size = BodyPart.Size
+					Part.Name = Name
+					Part.Transparency = 0
+					Part.CanCollide, Part.CanQuery, Part.CanTouch = false, false, false
+					Part.Massless = true
+					Part.Color = Character.Head.Color
+					Part.Parent = Character
+
+					local Mesh = Instance.new("SpecialMesh", Part)
+					Mesh.MeshId = "rbxassetid://12221758"
+					if Name ~= "Torso" then Mesh.Scale = Vector3.new(0.5, 1, 1) end
+
+					table.insert(PlayerData[Data].CurrentPartList.Organ, Part)
 				end
-				table.insert(PlayerData[Data].CurrentPartList.Organ,Part)
 			end
-			for Name, Property in pairs(R6_2_R15) do
-				local Joint = Instance.new("Motor6D",Character[Property["Part0"]])
+
+			-- Build Motors
+			for Name, Property in R6_2_R15 do
+				local p0, p1 = Character[Property.Part0], Character[Property.Part1]
+				local Joint = Instance.new("Motor6D")
 				Joint.Name = Name
-				Joint.C0 = Property["C0"]
-				Joint.C1 = Property["C1"]
-				Joint.Part0 = Character[Property["Part0"]]
-				Joint.Part1 = Character[Property["Part1"]]
+				Joint.C0, Joint.C1 = Property.C0, Property.C1
+				Joint.Part0, Joint.Part1 = p0, p1
+				Joint.Parent = p0
 			end
 		end
 	end
