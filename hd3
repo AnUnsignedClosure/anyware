@@ -4000,7 +4000,7 @@ function run(Player)
 				for k in pairs(partList) do
 					table.insert(keys, k)
 				end
-				currentMorph+=1
+				currentMorph = currentMorph + 1
 				if currentMorph > #keys then currentMorph = 1 end
 
 				local morph = keys[currentMorph]
