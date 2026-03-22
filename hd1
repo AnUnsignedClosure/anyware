@@ -3595,7 +3595,7 @@ function run(Player)
 		if Character then
 			for i,v in pairs(Character:GetChildren()) do
 				
-				if v.Name == "Head" or not v:IsA("BasePart") then;
+				if v.Name == "Head" or not v:IsA("BasePart") then
 					continue;
 				end;
 				v.Transparency = 1
