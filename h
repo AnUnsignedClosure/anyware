@@ -3594,8 +3594,9 @@ function run(Player)
 
 		if Character then
 			for i,v in pairs(Character:GetChildren()) do
+				
 				if v.Name == "Head" or not v:IsA("BasePart") then continue end
-				v.Transparency = 1
+				--v.Transparency = 1
 			end
 
 			for Name,BodyPart in pairs(R6Map) do
