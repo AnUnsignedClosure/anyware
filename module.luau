@@ -9,7 +9,7 @@ AnyWare.RankIdS = {
 	[1] = "Tester",
 	[0.5] = "Paid User",
 	[0] = "User",
-	[-1] = "Banned",
+	[-1] = "Blacklisted",
 }
 
 function AnyWare:Load()
